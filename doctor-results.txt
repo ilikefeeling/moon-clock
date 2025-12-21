@@ -1,0 +1,14 @@
+Running 17 checks on your project...
+Unexpected error while running 'Check for issues with Metro config' check:
+Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Error loading Metro config at: C:\Users\PC2301\Desktop\moon-clock\metro.config.cjs
+Only URLs with a scheme in: file, data, and node are supported by the default ESM loader. On Windows, absolute paths must be valid file:// URLs. Received protocol 'c:'
+15/17 checks passed. 2 checks failed. Possible issues detected:
+Use the --verbose flag to see more details about passed checks.
+
+??Check for common project setup issues
+The .expo directory is not ignored by Git. It contains machine-specific device history and development server settings and should not be committed.
+Advice:
+Add ".expo/" to your .gitignore to avoid committing local Expo state.
+
+??Check for issues with Metro config
+2 checks failed, indicating possible issues with the project.
