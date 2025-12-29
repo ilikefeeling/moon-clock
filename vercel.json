@@ -1,4 +1,3 @@
-```json
 {
     "cleanUrls": true,
     "trailingSlash": false,
@@ -9,4 +8,3 @@
         }
     ]
 }
-```
