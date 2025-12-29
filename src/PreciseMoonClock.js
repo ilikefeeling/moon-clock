@@ -309,32 +309,71 @@ const MoonCanvasRenderer = {
     },
 
     drawMoonIllumination(ctx, radius, moonData) {
-        const phaseAngle = moonData.phase * 2 * Math.PI;
-        const terminatorX = Math.cos(phaseAngle) * radius;
+        const phase = moonData.phase;
 
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.clip();
 
+        // 노란색 그라디언트
         const gradient = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, 0, 0, 0, radius * 1.2);
         gradient.addColorStop(0, '#fefce8');
         gradient.addColorStop(0.3, '#fef3c7');
         gradient.addColorStop(0.6, '#fde68a');
         gradient.addColorStop(1, '#fcd34d');
 
-        ctx.fillStyle = gradient;
-
+        // 밝은 영역 클리핑 경로 생성
         ctx.beginPath();
-        ctx.ellipse(terminatorX, 0, Math.abs(Math.cos(phaseAngle)) * radius, radius, 0, 0, Math.PI * 2);
 
-        if (moonData.isWaxing) {
-            ctx.arc(0, 0, radius, 0, Math.PI * 2, false);
+        // 조명 비율 (0~1)
+        const illumination = moonData.illumination / 100;
+
+        if (phase === 0 || phase === 1) {
+            // 삭: 아무것도 그리지 않음
+            ctx.restore();
+            return;
+        } else if (phase === 0.5) {
+            // 망: 전체 원
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        } else if (phase < 0.5) {
+            // 차오르는 달 (초승달 → 상현달 → 상현망)
+            // 오른쪽이 밝음
+
+            // 타원의 너비 계산
+            const ellipseRx = radius * (2 * illumination - 1);  // -radius ~ +radius
+
+            if (ellipseRx < 0) {
+                // 초승달 (phase < 0.25): 좁은 타원만
+                ctx.ellipse(0, 0, Math.abs(ellipseRx), radius, 0, -Math.PI / 2, Math.PI / 2, false);
+            } else {
+                // 상현망 (phase 0.25~0.5): 반원 + 타원
+                ctx.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2, false);  // 오른쪽 반원
+                ctx.ellipse(0, 0, ellipseRx, radius, 0, Math.PI / 2, -Math.PI / 2, true);  // 왼쪽 타원
+            }
         } else {
-            ctx.arc(0, 0, radius, 0, Math.PI * 2, true);
+            // 기울어지는 달 (하현망 → 하현달 → 그믐달)
+            // 왼쪽이 밝음
+
+            // 타원의 너비 계산 (역으로)
+            const ellipseRx = radius * (1 - 2 * illumination);  // radius ~ -radius
+
+            if (ellipseRx > 0) {
+                // 하현망 (phase 0.5~0.75): 반원 + 타원
+                ctx.arc(0, 0, radius, Math.PI / 2, -Math.PI / 2, false);  // 왼쪽 반원
+                ctx.ellipse(0, 0, ellipseRx, radius, 0, -Math.PI / 2, Math.PI / 2, true);  // 오른쪽 타원
+            } else {
+                // 그믐달 (phase > 0.75): 좁은 타원만
+                ctx.ellipse(0, 0, Math.abs(ellipseRx), radius, 0, Math.PI / 2, -Math.PI / 2, false);
+            }
         }
 
-        ctx.fill('evenodd');
+        ctx.closePath();
+
+        // 전체 달 원형으로 클리핑
+        ctx.clip();
+
+        // 노란색 채우기
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+
         ctx.restore();
     },
 

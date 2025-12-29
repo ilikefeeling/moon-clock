@@ -55,9 +55,18 @@ export const calculateSunRingAngle = (currentTime) => {
     return (offsetMinutes / 1440) * 360;
 };
 
-export const calculateTidalStatus = (currentTime, selectedPort) => {
+export const calculateTidalStatus = (currentTime, selectedPortOrCoords) => {
     const moonAngle = calculateMoonHandAngle(currentTime);
-    const portOffset = portOffsets[selectedPort].offset;
+    let portOffset = 0;
+
+    if (typeof selectedPortOrCoords === 'string') {
+        portOffset = portOffsets[selectedPortOrCoords].offset;
+    } else if (selectedPortOrCoords && typeof selectedPortOrCoords.lng === 'number') {
+        // 경도 기반 대략적 오차 계산 (표준 경도 135도 기준)
+        // 1도당 약 4분 차이
+        portOffset = (selectedPortOrCoords.lng - 135) * 4;
+    }
+
     const adjustedAngle = (moonAngle + (portOffset / 89428.3285 * 1000 / 1000) * 360) % 360;
 
     const angles = [0, 90, 180, 270];
@@ -73,6 +82,7 @@ export const calculateTidalStatus = (currentTime, selectedPort) => {
 };
 
 export const calculateTidalRange = (currentTime) => {
+    // 조차는 주로 태양과 달의 상대적 위치에 의해 결정되므로 포트 오프셋은 대략적 판정에 영향이 적음
     const moonAngle = calculateMoonHandAngle(currentTime);
     const sunAngle = calculateSunRingAngle(currentTime);
     const angleDiff = Math.abs(moonAngle - sunAngle);
